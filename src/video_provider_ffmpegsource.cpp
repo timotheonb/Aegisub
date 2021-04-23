@@ -90,7 +90,6 @@ public:
 	void GetFrame(int n, VideoFrame &out) override;
 
 	void SetColorSpace(std::string const& matrix) override {
-#if FFMS_VERSION >= ((2 << 24) | (17 << 16) | (1 << 8) | 0)
 		if (matrix == ColorSpace) return;
 		if (matrix == RealColorSpace)
 			FFMS_SetInputFormatV(VideoSource, CS, CR, FFMS_GetPixFmt(""), nullptr);
@@ -99,7 +98,6 @@ public:
 		else
 			return;
 		ColorSpace = matrix;
-#endif
 	}
 
 	int GetFrameCount() const override             { return VideoInfo->NumFrames; }
@@ -269,7 +267,6 @@ void FFmpegSourceVideoProvider::LoadVideo(agi::fs::path const& filename, std::st
 		CS = Width > 1024 || Height >= 600 ? AGI_CS_BT709 : AGI_CS_BT470BG;
 	RealColorSpace = ColorSpace = colormatrix_description(CS, CR);
 
-#if FFMS_VERSION >= ((2 << 24) | (17 << 16) | (1 << 8) | 0)
 	if (CS != AGI_CS_RGB && CS != AGI_CS_BT470BG && ColorSpace != colormatrix && colormatrix == "TV.601") {
 		CS = AGI_CS_BT470BG;
 		ColorSpace = colormatrix_description(AGI_CS_BT470BG, CR);
@@ -279,7 +276,6 @@ void FFmpegSourceVideoProvider::LoadVideo(agi::fs::path const& filename, std::st
 		if (FFMS_SetInputFormatV(VideoSource, CS, CR, FFMS_GetPixFmt(""), &ErrInfo))
 			throw VideoOpenError(std::string("Failed to set input format: ") + ErrInfo.Buffer);
 	}
-#endif
 
 	const int TargetFormat[] = { FFMS_GetPixFmt("bgra"), -1 };
 	if (FFMS_SetOutputFormatV2(VideoSource, TargetFormat, Width, Height, FFMS_RESIZER_BICUBIC, &ErrInfo))
